@@ -1,0 +1,137 @@
+--- 
+##VPC
+  Resources:
+    VPCAula:
+      Type: AWS::EC2::VPC
+      Properties:
+        CidrBlock: 10.0.0.0/16
+        EnableDnsSupport: 'true'
+        EnableDnsHostnames: 'true'
+        # Tags:
+        #   - Key: keyname
+        #     Value: value
+##SUBNETS
+    PublicSubnetA:
+      Type: AWS::EC2::Subnet
+      Properties:
+        AvailabilityZone: zone-id
+        VpcId: !Ref VPCAula
+        CidrBlock: 10.0.1.0/24  
+        # Tags:
+        #   - Key: keyname
+        #     Value: value
+
+    PublicSubnetB:
+      Type: AWS::EC2::Subnet
+      Properties:
+        AvailabilityZone: zone-id
+        VpcId: !Ref VPCAula
+        CidrBlock: 10.0.2.0/24  
+        # Tags:
+        #   - Key: keyname
+        #     Value: value
+
+    PrivateSubnetA:
+      Type: AWS::EC2::Subnet
+      Properties:
+        AvailabilityZone: zone-id
+        VpcId: !Ref VPCAula
+        CidrBlock: 10.0.3.0/24  
+        # Tags:
+        #   - Key: keyname
+        #     Value: value
+    PrivateSubnetB:
+      Type: AWS::EC2::Subnet
+      Properties:
+        AvailabilityZone: zone-id
+        VpcId: !Ref VPCAula
+        CidrBlock: 10.0.4.0/24  
+
+    IGW:
+      Type: AWS::EC2::InternetGateway
+    AttachIGW:
+      Type: AWS::EC2::VPCGatewayAttachment
+      Properties:
+        VpcId: !Ref VPCAula
+        InternetGatewayId: !Ref IGW
+
+    RT:
+      Type: AWS::EC2::RouteTable
+      Properties:
+        VpcId: !Ref VPCAula
+
+    RTtoIGW:
+      Type: AWS::EC2::Route
+      DependsOn:
+        - "IGW"
+      Properties:
+        DestinationCidrBlock: 0.0.0.0/0
+        GatewayId: !Ref IGW
+        RouteTableId: !Ref RT
+    
+    RTAssoc:
+      Type: AWS::EC2::SubnetRouteTableAssociation
+      Properties:
+        RouteTableId: !Ref RT
+        SubnetId: !Ref PublicSubnetA
+
+
+##Instance
+    Instance:
+      Type: AWS::EC2::Instance
+      Properties:
+        ImageId: xxxxxx
+        InstanceType: t2.micro
+        SubnetId: !Ref PrivateSubnetA
+
+
+##SNS TOPIC
+    Topico:
+      Type: AWS::SNS::Topic
+      Properties:
+        Subscription:
+          - Endpoint: "example@arroba.com"
+            Protocol: email
+        TopicName: "Topico"
+
+##Bucket S3
+    Bucket_S3:
+      Type: AWS::S3::Bucket
+      Properties: 
+        AccessControl: PublicRead 
+
+##Security Group
+    secGroupName: SgAula
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupName: SgAula
+        GroupDescription: "example SG, allow port 22"
+        VpcId: !!Ref VPCAula
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: '22'
+            ToPort: '22'
+            CidrIp: '0.0.0.0/0'
+        SecurityGroupEgress:
+          - IpProtocol: tcp
+            FromPort: '*'
+            ToPort: '*'
+            CidrIp: '0.0.0.0/0'
+        Tags:
+          - Key: "xxx"
+            Value: "xxx"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
